@@ -6,8 +6,7 @@ class PetFriends:
     def __init__(self):
         self.base_url = "https://petfriends.skillfactory.ru/"
     def get_api_key(self, email:str, password:str) -> json:
-        """Метод делает запрос к API сервера и возвращает статус запроса и результат в формате
-        JSON с уникальным ключом пользователя, найденого в указаным email и паролем"""
+
         headers = {
             'email':email,
             'password': password
@@ -54,7 +53,26 @@ class PetFriends:
             result = res.text
         print(result)
         return status, result
+    def add_new_pet_without_foto(self, auth_key: json, name: str, animal_type: str,
+                    age: str) -> json:
 
+        data = MultipartEncoder(
+            fields={
+                'name': name,
+                'animal_type': animal_type,
+                'age': age,
+                })
+        headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + 'api/create_pet_simple', headers=headers, data=data)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        print(result)
+        return status, result
     def del_from_database_pet(self,auth_key:json, pet_id:str) -> json:
         headers = {'auth_key': auth_key['key']}
         res = requests.delete(self.base_url + f'api/pets/{pet_id}', headers= headers)
@@ -85,6 +103,20 @@ class PetFriends:
             result = res.text
         return status, result
 
+    def add_photo_pet(self, auth_key: json, pet_id: str, pet_photo: str) -> json:
+
+        data = MultipartEncoder(fields={'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')})
+        headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
+
+        res = requests.post(self.base_url + f'api/pets/set_photo/{pet_id}', headers=headers, data=data)
+        status = res.status_code
+        result = ""
+        try:
+            result = res.json()
+        except json.decoder.JSONDecodeError:
+            result = res.text
+        print(result)
+        return status, result
 
 
 
